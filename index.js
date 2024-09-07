@@ -12,7 +12,7 @@ function createServer() {
 
   app.post(
     "/api/v1/task",
-    rateLimiter({ limit: 1, duration: 10 }),
+    rateLimiter({ limit: 1, duration: 1 }),
     (req, res) => {
       const { user_id } = req.body;
 
