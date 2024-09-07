@@ -14,7 +14,7 @@ export async function processQueue(endpoint, user_id, duration, limit) {
     try {
       const requests = await redisClient.get(redisKey);
 
-      if (!requests || parseInt(requests) < limit) {
+      if (!requests || parseInt(requests) < 20) {
         const nextTask = await redisClient.lpop(queueKey);
         if (nextTask) {
           const { taskId, timestamp } = JSON.parse(nextTask);
