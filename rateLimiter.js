@@ -5,9 +5,9 @@ import { processQueue } from "./taskProcessor.js";
 
 export function rateLimiter({ limit, duration }) {
   return async (req, res, next) => {
-    const ip = req.ip;
+    const { user_id } = req.body;
     const endpoint = req.originalUrl;
-    const redisKey = `${endpoint}:${ip}`;
+    const redisKey = `${endpoint}:${user_id}`;
     const queueKey = `${redisKey}:queue`;
 
     try {
@@ -17,20 +17,21 @@ export function rateLimiter({ limit, duration }) {
         const taskId = uuidv4();
         const task = JSON.stringify({
           taskId,
-          ip,
+          user_id,
           endpoint,
-          user_id: req.body.user_id,
           timestamp: new Date().toISOString(),
         });
         await redisClient.rpush(queueKey, task);
-        logger.warn(`Rate limit exceeded: Task queued with ID ${taskId}`);
+        logger.warn(
+          `${user_id} Rate limit exceeded: Task queued with Task ID ${taskId}`
+        );
 
         res.status(202).json({
           status: "success",
-          message: `Task ID = ${taskId} -> Queued for processing...`,
+          message: `User ID = ${user_id}, Task ID = ${taskId}, Queued for processing...`,
         });
 
-        processQueue(endpoint, ip, duration, limit);
+        processQueue(endpoint, user_id, duration, limit);
       } else {
         await redisClient
           .multi()
@@ -38,7 +39,7 @@ export function rateLimiter({ limit, duration }) {
           .expire(redisKey, duration)
           .exec();
 
-        logger.info(`Request allowed: ${ip} for ${endpoint}`);
+        logger.info(`Request allowed: User ID ${user_id} for ${endpoint}`);
         next();
       }
     } catch (err) {

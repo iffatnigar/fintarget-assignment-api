@@ -4,8 +4,8 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-export async function processQueue(endpoint, ip, duration, limit) {
-  const redisKey = `${endpoint}:${ip}`;
+export async function processQueue(endpoint, user_id, duration, limit) {
+  const redisKey = `${endpoint}:${user_id}`;
   const queueKey = `${redisKey}:queue`;
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const logFilePath = path.join(__dirname, "tasks.log");
@@ -24,9 +24,9 @@ export async function processQueue(endpoint, ip, duration, limit) {
             .expire(redisKey, duration)
             .exec();
 
-          const logEntry = `${taskId}-task completed at-${timestamp}\n`;
+          const logEntry = `User_ID:${user_id} Task_ID:${taskId} Task completed at:${timestamp}\n`;
           fs.appendFileSync(logFilePath, logEntry);
-          logger.info(`Processed task ${taskId} for ${ip}`);
+          logger.info(`Processed task ${taskId} for ${user_id}`);
         } else {
           clearInterval(interval);
         }

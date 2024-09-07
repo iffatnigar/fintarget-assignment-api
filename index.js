@@ -12,12 +12,14 @@ function createServer() {
 
   app.post(
     "/api/v1/task",
-    rateLimiter({ limit: 1, duration: 1 }),
+    rateLimiter({ limit: 1, duration: 10 }),
     (req, res) => {
       const { user_id } = req.body;
 
       if (!user_id) {
-        res.status(400).json({ message: "Please provide user_id" });
+        res
+          .status(400)
+          .json({ status: "failed", message: "Please provide user_id" });
         return;
       }
 
@@ -25,11 +27,13 @@ function createServer() {
       logger.info(message);
       console.log(message);
 
-      res.json({
+      res.status(200).json({
         status: "success",
         message: "Task processed successfully...",
       });
-      logger.info(`Success: ${req.ip} accessed ${req.originalUrl}`);
+      logger.info(
+        `[Success] User ID: ${user_id}, ${req.ip} accessed ${req.originalUrl}`
+      );
     }
   );
 
